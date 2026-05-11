@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时政术语双语学习平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'china-red': '#C41E3A',
+                        'china-red-light': '#E63946',
+                        'deep-blue': '#1D3557',
+                        'deep-blue-light': '#457B9D',
+                        'light-gray': '#F1FAEE',
+                        'medium-gray': '#A8DADC',
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'Noto Sans SC', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Noto Sans SC', 'Inter', sans-serif; }
+        .glass-effect { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .card-shadow { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05), 0 6px 10px rgba(0, 0, 0, 0.02); }
+        .term-card { transition: all 0.3s ease; }
+        .term-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1); }
+        .flip-card { perspective: 1000px; }
+        .flip-card-inner { transition: transform 0.6s; transform-style: preserve-3d; }
+        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back { backface-visibility: hidden; }
+        .flip-card-back { transform: rotateY(180deg); }
+        .progress-bar { transition: width 0.5s ease; }
+        .nav-link { position: relative; }
+        .nav-link::after { content: ''; position: absolute; width: 0; height: 3px; bottom: -4px; left: 0; background-color: #C41E3A; transition: width 0.3s ease; }
+        .nav-link:hover::after { width: 100%; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .btn-primary { background: linear-gradient(135deg, #C41E3A 0%, #E63946 100%); transition: all 0.3s ease; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 7px 14px rgba(196, 30, 58, 0.3); }
+        .btn-secondary { background: linear-gradient(135deg, #1D3557 0%, #457B9D 100%); transition: all 0.3s ease; }
+        .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 7px 14px rgba(29, 53, 87, 0.3); }
+        .category-tag { transition: all 0.2s ease; }
+        .category-tag:hover { transform: scale(1.05); }
+        .category-tag.active { background-color: #C41E3A; color: white; }
+        .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; background-color: #1D3557; color: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); z-index: 1000; opacity: 0; transform: translateY(20px); transition: all 0.3s ease; }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .banner { background: linear-gradient(135deg, #1D3557 0%, #457B9D 50%, #A8DADC 100%); position: relative; overflow: hidden; }
+        .banner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 L0,100 Z" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></svg>'); background-size: 20px 20px; }
+        .quiz-option { transition: all 0.2s ease; }
+        .quiz-option:hover { background-color: rgba(196, 30, 58, 0.05); }
+        .quiz-option.selected { border-color: #C41E3A; background-color: rgba(196, 30, 58, 0.1); }
+        .quiz-option.correct { border-color: #10B981; background-color: rgba(16, 185, 129, 0.1); }
+        .quiz-option.incorrect { border-color: #EF4444; background-color: rgba(239, 68, 68, 0.1); }
+    </style>
+</head>
+<body class="bg-light-gray min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="glass-effect fixed top-0 left-0 right-0 z-50 px-6 py-5">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-book-open text-china-red text-3xl"></i>
+                <span class="text-2xl font-bold text-deep-blue">时政术语双语学习平台</span>
+            </div>
+            <div class="hidden md:flex space-x-10">
+                <a href="#" class="nav-link text-deep-blue font-semibold text-lg" data-section="home">首页</a>
+                <a href="#" class="nav-link text-deep-blue font-semibold text-lg" data-section="terms">术语库</a>
+                <a href="#" class="nav-link text-deep-blue font-semibold text-lg" data-section="flashcards">记忆卡片</a>
+                <a href="#" class="nav-link text-deep-blue font-semibold text-lg" data-section="quiz">复习练习</a>
+                <a href="#" class="nav-link text-deep-blue font-semibold text-lg" data-section="mistakes">错题本</a>
+                <a href="#" class="nav-link text-deep-blue font-semibold text-lg" data-section="progress">学习进度</a>
+                <a href="#" class="nav-link text-deep-blue font-semibold text-lg" data-section="about">关于</a>
+            </div>
+            <button id="mobile-menu-btn" class="md:hidden text-deep-blue"><i class="fas fa-bars text-2xl"></i></button>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden mt-4 pb-2">
+            <div class="flex flex-col space-y-3">
+                <a href="#" class="nav-link text-deep-blue font-semibold text-lg py-2" data-section="home">首页</a>
+                <a href="#" class="nav-link text-deep-blue font-semibold text-lg py-2" data-section="terms">术语库</a>
+                <a href="#" class="nav-link text-deep-blue font-semibold text-lg py-2" data-section="flashcards">记忆卡片</a>
+                <a href="#" class="nav-link text-deep-blue font-semibold text-lg py-2" data-section="quiz">复习练习</a>
+                <a href="#" class="nav-link text-deep-blue font-semibold text-lg py-2" data-section="mistakes">错题本</a>
+                <a href="#" class="nav-link text-deep-blue font-semibold text-lg py-2" data-section="progress">学习进度</a>
+                <a href="#" class="nav-link text-deep-blue font-semibold text-lg py-2" data-section="about">关于</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main class="pt-24">
+        <!-- 首页 -->
+        <section id="home" class="section active">
+            <div class="banner text-white py-32 px-6">
+                <div class="max-w-7xl mx-auto text-center">
+                    <h1 class="text-5xl md:text-6xl font-bold mb-6">时政术语双语学习平台</h1>
+                    <p class="text-xl md:text-2xl mb-12 opacity-90 max-w-3xl mx-auto">权威时政术语标准英译，覆盖政治、经济、文化、生态、社会等领域，助力专业翻译能力提升。</p>
+                </div>
+            </div>
+            <!-- 学习统计 -->
+            <div class="bg-white py-16 px-6">
+                <div class="max-w-7xl mx-auto">
+                    <h2 class="text-3xl font-bold text-deep-blue mb-10 text-center">学习统计</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div class="text-center"><div class="text-4xl font-bold text-china-red mb-2" id="total-terms">39</div><div class="text-gray-600">术语总数</div></div>
+                        <div class="text-center"><div class="text-4xl font-bold text-deep-blue mb-2" id="learned-terms">0</div><div class="text-gray-600">已学术语</div></div>
+                        <div class="text-center"><div class="text-4xl font-bold text-deep-blue-light mb-2" id="mastered-terms">0</div><div class="text-gray-600">已掌握术语</div></div>
+                        <div class="text-center"><div class="text-4xl font-bold text-medium-gray mb-2" id="quiz-score">0%</div><div class="text-gray-600">测试正确率</div></div>
+                    </div>
+                </div>
+            </div>
+            <!-- 平台功能介绍 -->
+            <div class="max-w-7xl mx-auto px-6 py-16">
+                <h2 class="text-3xl font-bold text-deep-blue mb-10 text-center">平台功能</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white rounded-xl p-6 card-shadow">
+                        <div class="w-14 h-14 bg-china-red bg-opacity-10 rounded-full flex items-center justify-center mb-4"><i class="fas fa-book text-china-red text-2xl"></i></div>
+                        <h3 class="text-xl font-bold text-deep-blue mb-3">权威术语库</h3>
+                        <p class="text-gray-600">收录二十大报告、政府工作报告等权威文献中的时政术语，采用新华社、人民日报官方译法。</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 card-shadow">
+                        <div class="w-14 h-14 bg-deep-blue bg-opacity-10 rounded-full flex items-center justify-center mb-4"><i class="fas fa-clone text-deep-blue text-2xl"></i></div>
+                        <h3 class="text-xl font-bold text-deep-blue mb-3">记忆卡片</h3>
+                        <p class="text-gray-600">术语闪卡模式，正面中文、反面英文，支持翻页、收藏、朗读，科学记忆。</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 card-shadow">
+                        <div class="w-14 h-14 bg-medium-gray bg-opacity-30 rounded-full flex items-center justify-center mb-4"><i class="fas fa-tasks text-deep-blue-light text-2xl"></i></div>
+                        <h3 class="text-xl font-bold text-deep-blue mb-3">练习测试</h3>
+                        <p class="text-gray-600">提供英汉互译填空、选择、匹配、拼写等多种题型，自动判分，即时反馈。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 术语库 -->
+        <section id="terms" class="section">
+            <div class="max-w-7xl mx-auto px-6 py-10">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+                    <h2 class="text-3xl font-bold text-deep-blue mb-4 md:mb-0">时政术语库</h2>
+                    <div class="relative w-full md:w-64">
+                        <input type="text" id="term-search" placeholder="搜索术语..." class="w-full px-4 py-2 pl-10 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-china-red focus:border-transparent">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 mb-8" id="category-tags">
+                    <button class="category-tag active px-4 py-2 rounded-full bg-gray-100 text-gray-700 font-medium" data-category="all">全部</button>
+                    <button class="category-tag px-4 py-2 rounded-full bg-gray-100 text-gray-700 font-medium" data-category="政治">政治</button>
+                    <button class="category-tag px-4 py-2 rounded-full bg-gray-100 text-gray-700 font-medium" data-category="经济">经济</button>
+                    <button class="category-tag px-4 py-2 rounded-full bg-gray-100 text-gray-700 font-medium" data-category="外交">外交</button>
+                    <button class="category-tag px-4 py-2 rounded-full bg-gray-100 text-gray-700 font-medium" data-category="文化">文化</button>
+                    <button class="category-tag px-4 py-2 rounded-full bg-gray-100 text-gray-700 font-medium" data-category="生态">生态</button>
+                    <button class="category-tag px-4 py-2 rounded-full bg-gray-100 text-gray-700 font-medium" data-category="社会">社会</button>
+                    <button class="category-tag px-4 py-2 rounded-full bg-gray-100 text-gray-700 font-medium" data-category="历史">历史</button>
+                </div>
+                <div id="terms-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </section>
+
+        <!-- 记忆卡片 -->
+        <section id="flashcards" class="section">
+            <div class="max-w-7xl mx-auto px-6 py-10">
+                <h2 class="text-3xl font-bold text-deep-blue mb-8">记忆卡片</h2>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+                    <div class="flex space-x-4 mb-4 md:mb-0">
+                        <button id="sequential-mode" class="px-4 py-2 rounded-lg bg-china-red text-white font-medium"><i class="fas fa-list-ol mr-2"></i>顺序学习</button>
+                        <button id="random-mode" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium"><i class="fas fa-random mr-2"></i>随机学习</button>
+                    </div>
+                    <div class="flex items-center"><span class="text-gray-600 mr-2">当前进度:</span><span id="flashcard-progress" class="font-bold text-deep-blue">1/39</span></div>
+                </div>
+                <div class="flex justify-center mb-8">
+                    <div id="flashcard-container" class="flip-card w-full max-w-lg h-80 cursor-pointer">
+                        <div class="flip-card-inner relative w-full h-full">
+                            <div class="flip-card-front absolute w-full h-full bg-white rounded-xl card-shadow flex flex-col justify-center items-center p-8">
+                                <div class="text-sm text-gray-500 mb-4">中文</div>
+                                <div id="flashcard-chinese" class="text-2xl font-bold text-deep-blue text-center"></div>
+                                <div class="mt-6 text-gray-400 text-sm"><i class="fas fa-hand-pointer mr-1"></i>点击翻转</div>
+                            </div>
+                            <div class="flip-card-back absolute w-full h-full bg-white rounded-xl card-shadow flex flex-col justify-center items-center p-8">
+                                <div class="text-sm text-gray-500 mb-4">英文</div>
+                                <div id="flashcard-english" class="text-xl font-bold text-china-red text-center"></div>
+                                <div class="mt-6 text-gray-400 text-sm"><i class="fas fa-hand-pointer mr-1"></i>点击翻转</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-center space-x-4 mb-8">
+                    <button id="prev-card" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium"><i class="fas fa-arrow-left mr-2"></i>上一个</button>
+                    <button id="mark-mastered" class="px-4 py-2 rounded-lg bg-green-100 text-green-700 font-medium"><i class="fas fa-check mr-2"></i>已掌握</button>
+                    <button id="favorite-card" class="px-4 py-2 rounded-lg bg-yellow-100 text-yellow-700 font-medium"><i class="fas fa-star mr-2"></i>收藏</button>
+                    <button id="read-aloud" class="px-4 py-2 rounded-lg bg-blue-100 text-blue-700 font-medium"><i class="fas fa-volume-up mr-2"></i>朗读</button>
+                    <button id="next-card" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium">下一个<i class="fas fa-arrow-right ml-2"></i></button>
+                </div>
+                <div id="flashcard-details" class="bg-white rounded-xl p-6 card-shadow">
+                    <h3 class="text-xl font-bold text-deep-blue mb-4">术语解析</h3>
+                    <div id="flashcard-explanation" class="text-gray-600"></div>
+                    <div id="flashcard-background" class="mt-4 text-gray-600"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 复习练习 -->
+        <section id="quiz" class="section">
+            <div class="max-w-7xl mx-auto px-6 py-10">
+                <h2 class="text-3xl font-bold text-deep-blue mb-8">复习练习</h2>
+                <div id="quiz-type-selection" class="mb-8">
+                    <h3 class="text-xl font-bold text-deep-blue mb-4">选择练习类型</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <button class="quiz-type-btn bg-white rounded-xl p-6 card-shadow text-center" data-type="chinese-to-english">
+                            <div class="w-12 h-12 bg-china-red bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-language text-china-red text-xl"></i></div>
+                            <h4 class="font-bold text-deep-blue mb-2">汉译英填空</h4>
+                            <p class="text-sm text-gray-500">根据中文提示填写英文术语</p>
+                        </button>
+                        <button class="quiz-type-btn bg-white rounded-xl p-6 card-shadow text-center" data-type="english-to-chinese">
+                            <div class="w-12 h-12 bg-deep-blue bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-exchange-alt text-deep-blue text-xl"></i></div>
+                            <h4 class="font-bold text-deep-blue mb-2">英译汉选择</h4>
+                            <p class="text-sm text-gray-500">根据英文术语选择正确中文翻译</p>
+                        </button>
+                        <button class="quiz-type-btn bg-white rounded-xl p-6 card-shadow text-center" data-type="matching">
+                            <div class="w-12 h-12 bg-deep-blue-light bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-link text-deep-blue-light text-xl"></i></div>
+                            <h4 class="font-bold text-deep-blue mb-2">术语匹配</h4>
+                            <p class="text-sm text-gray-500">将中文术语与英文翻译配对</p>
+                        </button>
+                        <button class="quiz-type-btn bg-white rounded-xl p-6 card-shadow text-center" data-type="spelling">
+                            <div class="w-12 h-12 bg-medium-gray bg-opacity-30 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-spell-check text-deep-blue text-xl"></i></div>
+                            <h4 class="font-bold text-deep-blue mb-2">拼写练习</h4>
+                            <p class="text-sm text-gray-500">根据中文提示拼写英文术语</p>
+                        </button>
+                    </div>
+                </div>
+                <div id="quiz-content" class="hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 id="quiz-title" class="text-xl font-bold text-deep-blue">汉译英填空</h3>
+                        <div class="flex items-center"><span class="text-gray-600 mr-2">题目进度:</span><span id="quiz-progress" class="font-bold text-deep-blue">1/10</span></div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-6"><div id="quiz-progress-bar" class="progress-bar bg-china-red h-2 rounded-full" style="width: 10%"></div></div>
+                    <div id="quiz-question-container" class="bg-white rounded-xl p-6 card-shadow mb-6"></div>
+                    <div id="quiz-answer-container" class="bg-white rounded-xl p-6 card-shadow mb-6"></div>
+                    <div class="flex justify-between">
+                        <button id="quit-quiz" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium"><i class="fas fa-times mr-2"></i>退出练习</button>
+                        <button id="submit-answer" class="px-4 py-2 rounded-lg bg-china-red text-white font-medium">提交答案<i class="fas fa-check ml-2"></i></button>
+                    </div>
+                </div>
+                <div id="quiz-result" class="hidden">
+                    <div class="bg-white rounded-xl p-8 card-shadow text-center">
+                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fas fa-trophy text-green-500 text-3xl"></i></div>
+                        <h3 class="text-2xl font-bold text-deep-blue mb-2">练习完成！</h3>
+                        <p class="text-gray-600 mb-6">您的表现如下：</p>
+                        <div class="grid grid-cols-2 gap-4 mb-8">
+                            <div class="bg-gray-50 rounded-lg p-4"><div class="text-3xl font-bold text-deep-blue mb-1" id="result-score">80%</div><div class="text-gray-500">正确率</div></div>
+                            <div class="bg-gray-50 rounded-lg p-4"><div class="text-3xl font-bold text-deep-blue mb-1" id="result-correct">8/10</div><div class="text-gray-500">正确题数</div></div>
+                        </div>
+                        <div class="flex justify-center space-x-4">
+                            <button id="review-mistakes" class="px-4 py-2 rounded-lg bg-deep-blue text-white font-medium"><i class="fas fa-eye mr-2"></i>查看错题</button>
+                            <button id="retry-quiz" class="px-4 py-2 rounded-lg bg-china-red text-white font-medium"><i class="fas fa-redo mr-2"></i>重新练习</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 错题本 -->
+        <section id="mistakes" class="section">
+            <div class="max-w-7xl mx-auto px-6 py-10">
+                <h2 class="text-3xl font-bold text-deep-blue mb-8">错题本</h2>
+                <div id="mistakes-empty" class="bg-white rounded-xl p-8 card-shadow text-center">
+                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fas fa-check-circle text-gray-400 text-3xl"></i></div>
+                    <h3 class="text-xl font-bold text-deep-blue mb-2">暂无错题</h3>
+                    <p class="text-gray-600 mb-6">完成练习后，错题将自动收录到这里</p>
+                    <button class="btn-primary px-4 py-2 rounded-lg text-white font-medium" data-section="quiz">开始练习</button>
+                </div>
+                <div id="mistakes-list" class="hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="text-gray-600">共 <span id="mistakes-count" class="font-bold text-deep-blue">0</span> 道错题</div>
+                        <button id="clear-mistakes" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium"><i class="fas fa-trash mr-2"></i>清空错题本</button>
+                    </div>
+                    <div id="mistakes-items" class="space-y-4"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 学习进度 -->
+        <section id="progress" class="section">
+            <div class="max-w-7xl mx-auto px-6 py-10">
+                <h2 class="text-3xl font-bold text-deep-blue mb-8">学习进度</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white rounded-xl p-6 card-shadow">
+                        <h3 class="text-xl font-bold text-deep-blue mb-4">总体进度</h3>
+                        <div class="flex items-center mb-4">
+                            <div class="w-full bg-gray-200 rounded-full h-4 mr-4"><div id="overall-progress-bar" class="progress-bar bg-china-red h-4 rounded-full" style="width: 0%"></div></div>
+                            <span id="overall-progress-text" class="font-bold text-deep-blue">0%</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div><div class="text-2xl font-bold text-deep-blue mb-1" id="progress-learned">0</div><div class="text-gray-500 text-sm">已学习</div></div>
+                            <div><div class="text-2xl font-bold text-deep-blue-light mb-1" id="progress-mastered">0</div><div class="text-gray-500 text-sm">已掌握</div></div>
+                            <div><div class="text-2xl font-bold text-gray-400 mb-1" id="progress-remaining">39</div><div class="text-gray-500 text-sm">未学习</div></div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 card-shadow">
+                        <h3 class="text-xl font-bold text-deep-blue mb-4">分类进度</h3>
+                        <div id="category-progress" class="space-y-4"></div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <h3 class="text-xl font-bold text-deep-blue mb-4">学习建议</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 bg-china-red bg-opacity-10 rounded-full flex items-center justify-center mr-4 mt-1"><i class="fas fa-lightbulb text-china-red"></i></div>
+                            <div><h4 class="font-bold text-deep-blue mb-1">坚持每日学习</h4><p class="text-gray-600">每天学习5-10个术语，保持学习的连续性和规律性。</p></div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 bg-deep-blue bg-opacity-10 rounded-full flex items-center justify-center mr-4 mt-1"><i class="fas fa-sync-alt text-deep-blue"></i></div>
+                            <div><h4 class="font-bold text-deep-blue mb-1">定期复习</h4><p class="text-gray-600">使用记忆卡片功能，结合朗读功能，加深记忆印象。</p></div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 bg-deep-blue-light bg-opacity-10 rounded-full flex items-center justify-center mr-4 mt-1"><i class="fas fa-pen text-deep-blue-light"></i></div>
+                            <div><h4 class="font-bold text-deep-blue mb-1">多做练习</h4><p class="text-gray-600">通过不同类型的练习测试，巩固记忆，发现薄弱环节。</p></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 关于 -->
+        <section id="about" class="section">
+            <div class="max-w-7xl mx-auto px-6 py-10">
+                <h2 class="text-3xl font-bold text-deep-blue mb-8">关于平台</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white rounded-xl p-6 card-shadow">
+                        <h3 class="text-xl font-bold text-deep-blue mb-4">平台介绍</h3>
+                        <p class="text-gray-600 mb-4">时政术语双语学习平台是一个专门为翻译学习者、外事工作者和对时政翻译感兴趣的人士设计的学习工具。平台收录了二十大报告、政府工作报告、外交讲话等核心时政领域的术语，采用新华社、人民日报官方译法，确保翻译准确规范。</p>
+                        <p class="text-gray-600">平台提供术语库浏览、记忆卡片、练习测试等多种学习方式，帮助用户系统学习时政术语的标准英译，提高翻译能力和水平。</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 card-shadow">
+                        <h3 class="text-xl font-bold text-deep-blue mb-4">翻译规范来源</h3>
+                        <p class="text-gray-600 mb-4">本平台所有术语翻译均来源于权威官方文献和标准译法，主要包括：</p>
+                        <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                            <li>《党的二十大报告》官方英文版</li>
+                            <li>《政府工作报告》官方英文版</li>
+                            <li>外交部官方网站英文版</li>
+                            <li>新华社英文报道</li>
+                            <li>《中国日报》英文版</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <h3 class="text-xl font-bold text-deep-blue mb-4">使用说明</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div><h4 class="font-bold text-deep-blue mb-2">术语库</h4><p class="text-gray-600">浏览所有时政术语，支持分类筛选和关键词搜索，查看术语的中文原句、标准英译、术语解析和背景说明。</p></div>
+                        <div><h4 class="font-bold text-deep-blue mb-2">记忆卡片</h4><p class="text-gray-600">使用闪卡模式学习术语，正面显示中文，点击翻转显示英文，支持顺序学习和随机学习两种模式。</p></div>
+                        <div><h4 class="font-bold text-deep-blue mb-2">复习练习</h4><p class="text-gray-600">提供汉译英填空、英译汉选择、术语匹配、拼写练习四种题型，自动判分，即时反馈。</p></div>
+                        <div><h4 class="font-bold text-deep-blue mb-2">错题本</h4><p class="text-gray-600">自动收录练习中的错题，方便反复练习，攻克难点。</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-deep-blue text-white py-8 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center mb-4 md:mb-0"><i class="fas fa-book-open text-china-red text-xl mr-2"></i><span class="text-lg font-bold">时政术语双语学习平台</span></div>
+            <div class="text-gray-300 text-sm">© 2023 时政术语双语学习平台. 保留所有权利.</div>
+        </div>
+    </footer>
+
+    <!-- 提示框 -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // 时政术语数据
+        const termsData = [
+            { id: 1, category: "政治", chinese: "多党合作和政治协商", english: "multiparty cooperation and political consultation", explanation: "指在中国共产党领导下，各政党、各人民团体、各少数民族和社会各界的代表，以中国人民政治协商会议为组织形式，经常就国家的大政方针进行民主协商的一种制度。", background: "这是中国共产党领导的多党合作和政治协商制度的重要组成部分，是我国的一项基本政治制度。" },
+            { id: 2, category: "经济", chinese: "创新驱动发展战略", english: "The innovation-driven development strategy", explanation: "指以科技创新为核心，带动制度创新、文化创新等，推动经济社会发展从要素驱动向创新驱动转变的国家战略。", background: "党的十九大报告指出，创新是引领发展的第一动力，是建设现代化经济体系的战略支撑。" },
+            { id: 3, category: "政治", chinese: "爱国统一战线", english: "patriotic united front", explanation: "指由中国共产党领导的，各民主党派、无党派人士、人民团体、少数民族人士和各界爱国人士参加的，由全体社会主义劳动者、社会主义事业的建设者、拥护社会主义的爱国者、拥护祖国统一和致力于中华民族伟大复兴的爱国者组成的联盟。", background: "统一战线是中国共产党凝聚人心、汇聚力量的重要法宝。" },
+            { id: 4, category: "政治", chinese: "中国式现代化道路", english: "a distinctively Chinese path to modernization", explanation: "指在中国共产党领导下，立足中国国情，走中国特色社会主义道路，实现社会主义现代化的道路。", background: "中国式现代化是人口规模巨大的现代化，是全体人民共同富裕的现代化，是物质文明和精神文明相协调的现代化，是人与自然和谐共生的现代化，是走和平发展道路的现代化。" },
+            { id: 5, category: "政治", chinese: "中国式现代化新道路", english: "a new and uniquely Chinese path to modernization", explanation: "指在新时代背景下，中国共产党领导人民开创的，具有中国特色、符合中国国情的现代化新路径。", background: "这条道路摒弃了西方以资本为中心的现代化、两极分化的现代化、物质主义膨胀的现代化、对外扩张掠夺的现代化老路。" },
+            { id: 6, category: "政治", chinese: "中国式现代化", english: "Chinese modernization", explanation: "指中国共产党领导的社会主义现代化，既有各国现代化的共同特征，更有基于自己国情的中国特色。", background: "习近平总书记在党的二十大报告中深入阐述了中国式现代化的中国特色和本质要求。" },
+            { id: 7, category: "政治", chinese: "社会主义现代化强国", english: "a great modern socialist country", explanation: "指到本世纪中叶，把我国建成富强民主文明和谐美丽的社会主义现代化强国。", background: "这是中国共产党确立的第二个百年奋斗目标。" },
+            { id: 8, category: "政治", chinese: "坚持党的领导", english: "Upholding the Party’s leadership", explanation: "指坚持中国共产党在中国特色社会主义事业中的领导核心地位，这是中国特色社会主义最本质的特征。", background: "这是党百年奋斗历史经验的第一条。" },
+            { id: 9, category: "政治", chinese: "坚持人民至上", english: "Putting the people first", explanation: "指坚持以人民为中心的发展思想，始终把人民利益放在最高位置。", background: "党的根基在人民、血脉在人民、力量在人民。" },
+            { id: 10, category: "政治", chinese: "坚持理论创新", english: "Advancing theoretical innovation", explanation: "指不断推进马克思主义中国化时代化，用党的创新理论武装全党、教育人民。", background: "马克思主义理论不是教条而是行动指南，必须随着实践发展而发展。" },
+            { id: 11, category: "政治", chinese: "坚持独立自主", english: "Staying independent", explanation: "指坚持把国家和民族发展放在自己力量的基点上，坚持中国的事情必须由中国人民自己作主张、自己来处理。", background: "独立自主是中华民族精神之魂，是我们立党立国的重要原则。" },
+            { id: 12, category: "政治", chinese: "坚持中国道路", english: "Following the Chinese path", explanation: "指坚持走中国特色社会主义道路，这是实现社会主义现代化、创造人民美好生活的必由之路。", background: "方向决定前途，道路决定命运。" },
+            { id: 13, category: "政治", chinese: "坚持胸怀天下", english: "maintain a global vision", explanation: "指以世界眼光关注人类前途命运，从人类发展大潮流、世界变化大格局、中国发展大历史正确认识和处理同外部世界的关系。", background: "中国共产党始终以世界眼光关注人类前途命运。" },
+            { id: 14, category: "政治", chinese: "坚持开拓创新", english: "Breaking new ground", explanation: "指敢为天下先，走前人没走过的路，不断推进理论创新、实践创新、制度创新、文化创新以及其他各方面创新。", background: "创新是一个国家、一个民族发展进步的不竭动力。" },
+            { id: 15, category: "政治", chinese: "坚持敢于斗争", english: "Standing up for ourselves", explanation: "指敢于斗争、善于斗争，在斗争中争取团结，在斗争中谋求发展，在斗争中争取胜利。", background: "敢于斗争、敢于胜利，是党和人民不可战胜的强大精神力量。" },
+            { id: 16, category: "政治", chinese: "坚持统一战线", english: "Promoting the united front", explanation: "指团结一切可以团结的力量，调动一切可以调动的积极因素，促进政党关系、民族关系、宗教关系、阶层关系、海内外同胞关系和谐。", background: "建立最广泛的统一战线，是党克敌制胜的重要法宝，也是党执政兴国的重要法宝。" },
+            { id: 17, category: "政治", chinese: "坚持自我革命", english: "Remaining committed to self-reform", explanation: "指勇于自我革命，从严管党治党，保持党的先进性和纯洁性。", background: "勇于自我革命是中国共产党区别于其他政党的显著标志。" },
+            { id: 18, category: "社会", chinese: "专项扶贫", english: "government-sponsored projects", explanation: "指政府安排专项资金，由有关部门组织实施的扶贫项目。", background: "这是中国扶贫开发的重要组成部分。" },
+            { id: 19, category: "社会", chinese: "行业扶贫", english: "sector-specific programs", explanation: "指各行业部门履行行业职责，结合自身优势，帮助贫困地区发展产业、改善基础设施和公共服务的扶贫方式。", background: "行业扶贫是专项扶贫的重要补充。" },
+            { id: 20, category: "社会", chinese: "社会扶贫", english: "corporate and societal assistance", explanation: "指动员社会力量参与扶贫开发，包括东西部扶贫协作、定点扶贫、企业扶贫、社会组织扶贫等。", background: "社会扶贫形成了政府、市场、社会协同推进的大扶贫格局。" },
+            { id: 21, category: "社会", chinese: "精准扶贫", english: "targeted poverty-alleviation", explanation: "指针对不同贫困区域环境、不同贫困农户状况，运用科学有效程序对扶贫对象实施精确识别、精确帮扶、精确管理的治贫方式。", background: "2013年11月，习近平总书记在湖南湘西考察时首次提出“精准扶贫”重要理念。" },
+            { id: 22, category: "生态", chinese: "低碳发展", english: "low-carbon development", explanation: "指以低能耗、低污染、低排放为基础的经济发展模式，是实现可持续发展的必然选择。", background: "中国承诺力争2030年前实现碳达峰、2060年前实现碳中和。" },
+            { id: 23, category: "经济", chinese: "供给侧结构性改革", english: "supply-side structural reform", explanation: "指从提高供给质量出发，推进结构调整，扩大有效供给，提高供给结构对需求变化的适应性和灵活性。", background: "供给侧结构性改革旨在提高供给体系质量和效率，增强经济持续增长动力。" },
+            { id: 24, category: "外交", chinese: "和平共处", english: "peaceful coexistence in developing diplomatic relations and economic and cultural exchanges with other countries", explanation: "指各国在相互尊重主权和领土完整、互不侵犯、互不干涉内政、平等互利、和平共处五项原则的基础上发展关系。", background: "和平共处五项原则是中国外交政策的基石。" },
+            { id: 25, category: "外交", chinese: "内政", english: "internal affairs", explanation: "指国家内部的政治、经济、社会、文化等事务，不受外国干涉。", background: "互不干涉内政是和平共处五项原则之一。" },
+            { id: 26, category: "外交", chinese: "零和博弈", english: "zero-sum games", explanation: "指一方收益必然意味着另一方损失的博弈思维。", background: "中国倡导双赢、多赢、共赢的新理念，反对零和博弈思维。" },
+            { id: 27, category: "外交", chinese: "同舟共济", english: "stick together through thick and thin/weal and woe", explanation: "比喻在困难或危险时，大家齐心协力，共同渡过难关。", background: "面对全球性挑战，各国应同舟共济，共同构建人类命运共同体。" },
+            { id: 28, category: "文化", chinese: "精神指引", english: "cultural and moral guidance", explanation: "指通过文化、道德、价值观等方面的引导，为社会发展提供精神动力和思想保证。", background: "文化自信是一个国家、一个民族发展中最基本、最深沉、最持久的力量。" },
+            { id: 29, category: "文化", chinese: "民族精神", english: "Chinese ethos", explanation: "指中华民族在长期历史发展中形成的，为本民族大多数成员所认同的价值取向、思维方式、道德规范和精神气质。", background: "以爱国主义为核心的民族精神是中华民族的精神支柱。" },
+            { id: 30, category: "文化", chinese: "时代精神", english: "readiness to respond to the call of our times", explanation: "指在新的历史条件下形成的，体现时代特征、顺应时代潮流、引领时代发展的精神风貌。", background: "以改革创新为核心的时代精神是当代中国人民的精神风貌。" },
+            { id: 31, category: "生态", chinese: "环保手工", english: "recycled crafts", explanation: "指利用废旧物品或环保材料制作的手工艺品，体现了绿色低碳的生活理念。", background: "推广环保手工是倡导绿色生活方式的一种体现。" },
+            { id: 32, category: "生态", chinese: "生态红线", english: "ecological red lines", explanation: "指在生态空间范围内具有特殊重要生态功能、必须强制性严格保护的区域。", background: "划定并严守生态保护红线，是维护国家生态安全的客观需要。" },
+            { id: 33, category: "生态", chinese: "美丽中国", english: "Beautiful China initiative", explanation: "指把我国建设成为生态环境良好的国家，实现天蓝、地绿、水净的美好愿景。", background: "建设美丽中国是全面建设社会主义现代化国家的重要目标。" },
+            { id: 34, category: "政治", chinese: "社会主义核心价值观", english: "the core socialist values", explanation: "指富强、民主、文明、和谐，自由、平等、公正、法治，爱国、敬业、诚信、友善。", background: "社会主义核心价值观是当代中国精神的集中体现，凝结着全体人民共同的价值追求。" },
+            { id: 35, category: "文化", chinese: "中华传统文化", english: "traditional Chinese culture", explanation: "指中华民族在长期历史发展过程中形成的，具有稳定形态的文化。", background: "中华优秀传统文化是中华民族的文化根脉。" },
+            { id: 36, category: "社会", chinese: "社会车辆", english: "non-authorized vehicles", explanation: "指除特种车辆、公共交通车辆等以外的，私人或单位所有的车辆。", background: "在特定区域或时段，社会车辆可能受到通行限制。" },
+            { id: 37, category: "社会", chinese: "地方院校", english: "non-military universities", explanation: "指由地方行政部门划拨经费，隶属于地方政府的普通高等院校。", background: "相对于军队院校和国务院部委直属院校而言。" },
+            { id: 38, category: "历史", chinese: "青铜时代", english: "The Bronze Age", explanation: "指人类历史上以青铜器为主要生产工具和武器的时代。", background: "中国的青铜时代以夏、商、周为代表，创造了灿烂的青铜文明。" },
+            { id: 39, category: "历史", chinese: "维多利亚时代", english: "the Victorian era", explanation: "指英国维多利亚女王在位时期（1837-1901），是英国工业革命和大英帝国的鼎盛时期。", background: "维多利亚时代的英国在政治、经济、文化等方面都取得了巨大发展，对世界历史产生了深远影响。" }
+        ];
+
+        // 错题数据
+        let mistakesData = [];
+        // 学习记录数据
+        let learningRecords = [];
+        // 当前闪卡索引
+        let currentFlashcardIndex = 0;
+        let isRandomMode = false;
+        // 当前练习数据
+        let currentQuizType = '';
+        let currentQuizQuestions = [];
+        let currentQuizIndex = 0;
+        let correctAnswers = 0;
+
+        // DOM加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            initNavigation();
+            initTermsList();
+            initFlashcards();
+            initQuiz();
+            initMistakes();
+            initProgress();
+            loadFromLocalStorage();
+            updateStatistics();
+        });
+
+        // 初始化导航
+        function initNavigation() {
+            const navLinks = document.querySelectorAll('.nav-link, [data-section]');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const sectionId = this.getAttribute('data-section');
+                    showSection(sectionId);
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                });
+            });
+            document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+                document.getElementById('mobile-menu').classList.toggle('hidden');
+            });
+        }
+
+        // 显示指定部分
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if (link.getAttribute('data-section') === sectionId) link.classList.add('text-china-red');
+                else link.classList.remove('text-china-red');
+            });
+            window.scrollTo(0, 0);
+        }
+
+        // 初始化术语列表
+        function initTermsList() {
+            renderTermsList(termsData);
+            document.getElementById('term-search').addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const filteredTerms = termsData.filter(term => term.chinese.toLowerCase().includes(searchTerm) || term.english.toLowerCase().includes(searchTerm));
+                renderTermsList(filteredTerms);
+            });
+            document.querySelectorAll('.category-tag').forEach(tag => {
+                tag.addEventListener('click', function() {
+                    document.querySelectorAll('.category-tag').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    const category = this.getAttribute('data-category');
+                    if (category === 'all') renderTermsList(termsData);
+                    else renderTermsList(termsData.filter(term => term.category === category));
+                });
+            });
+        }
+
+        // 渲染术语列表
+        function renderTermsList(terms) {
+            const termsList = document.getElementById('terms-list');
+            termsList.innerHTML = '';
+            if (terms.length === 0) {
+                termsList.innerHTML = '<div class="col-span-3 text-center py-8 text-gray-500">未找到匹配的术语</div>';
+                return;
+            }
+            terms.forEach(term => {
+                const termCard = document.createElement('div');
+                termCard.className = 'term-card bg-white rounded-xl p-6 card-shadow';
+                termCard.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">${term.category}</span>
+                        <button class="favorite-btn text-gray-400 hover:text-yellow-500" data-id="${term.id}"><i class="${term.favorite ? 'fas' : 'far'} fa-star"></i></button>
+                    </div>
+                    <h3 class="text-xl font-bold text-deep-blue mb-2">${term.chinese}</h3>
+                    <p class="text-china-red font-medium mb-4">${term.english}</p>
+                    <div class="flex justify-between items-center">
+                        <div class="flex space-x-2">
+                            <span class="px-2 py-1 ${term.learned ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'} rounded text-xs">${term.learned ? '已学习' : '未学习'}</span>
+                            <span class="px-2 py-1 ${term.mastered ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'} rounded text-xs">${term.mastered ? '已掌握' : '未掌握'}</span>
+                        </div>
+                        <button class="view-term-btn text-deep-blue-light hover:text-deep-blue" data-id="${term.id}"><i class="fas fa-arrow-right"></i></button>
+                    </div>
+                `;
+                termsList.appendChild(termCard);
+                termCard.querySelector('.favorite-btn').addEventListener('click', function(e) { e.stopPropagation(); toggleFavorite(term.id); });
+                termCard.querySelector('.view-term-btn').addEventListener('click', function() { showTermDetail(term.id); });
+                termCard.addEventListener('click', function() { showTermDetail(term.id); });
+            });
+        }
+
+        // 显示术语详情
+        function showTermDetail(termId) {
+            const term = termsData.find(t => t.id === termId);
+            if (!term) return;
+            if (!term.learned) {
+                term.learned = true;
+                addLearningRecord(term);
+                saveToLocalStorage();
+                updateStatistics();
+            }
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">${term.category}</span>
+                            <button class="close-modal text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+                        </div>
+                        <h2 class="text-2xl font-bold text-deep-blue mb-2">${term.chinese}</h2>
+                        <p class="text-xl text-china-red font-medium mb-6">${term.english}</p>
+                        <div class="mb-6"><h3 class="text-lg font-bold text-deep-blue mb-2">术语解析</h3><p class="text-gray-600">${term.explanation}</p></div>
+                        <div class="mb-6"><h3 class="text-lg font-bold text-deep-blue mb-2">背景说明</h3><p class="text-gray-600">${term.background}</p></div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex space-x-2">
+                                <button class="mark-learned-btn px-4 py-2 rounded-lg ${term.learned ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'} font-medium" data-id="${term.id}"><i class="fas fa-book-reader mr-2"></i>${term.learned ? '已学习' : '标记为已学习'}</button>
+                                <button class="mark-mastered-btn px-4 py-2 rounded-lg ${term.mastered ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'} font-medium" data-id="${term.id}"><i class="fas fa-check mr-2"></i>${term.mastered ? '已掌握' : '标记为已掌握'}</button>
+                            </div>
+                            <button class="favorite-btn px-4 py-2 rounded-lg ${term.favorite ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'} font-medium" data-id="${term.id}"><i class="${term.favorite ? 'fas' : 'far'} fa-star mr-2"></i>${term.favorite ? '已收藏' : '收藏'}</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.querySelector('.close-modal').addEventListener('click', function() { document.body.removeChild(modal); });
+            modal.addEventListener('click', function(e) { if (e.target === modal) document.body.removeChild(modal); });
+            modal.querySelector('.mark-learned-btn').addEventListener('click', function() { toggleLearned(term.id); this.className = `mark-learned-btn px-4 py-2 rounded-lg ${term.learned ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'} font-medium`; this.innerHTML = `<i class="fas fa-book-reader mr-2"></i>${term.learned ? '已学习' : '标记为已学习'}`; });
+            modal.querySelector('.mark-mastered-btn').addEventListener('click', function() { toggleMastered(term.id); this.className = `mark-mastered-btn px-4 py-2 rounded-lg ${term.mastered ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'} font-medium`; this.innerHTML = `<i class="fas fa-check mr-2"></i>${term.mastered ? '已掌握' : '标记为已掌握'}`; });
+            modal.querySelector('.favorite-btn').addEventListener('click', function() { toggleFavorite(term.id); this.className = `favorite-btn px-4 py-2 rounded-lg ${term.favorite ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'} font-medium`; this.innerHTML = `<i class="${term.favorite ? 'fas' : 'far'} fa-star mr-2"></i>${term.favorite ? '已收藏' : '收藏'}`; });
+        }
+
+        // 初始化闪卡
+        function initFlashcards() {
+            updateFlashcard();
+            document.getElementById('flashcard-container').addEventListener('click', function() { this.classList.toggle('flipped'); });
+            document.getElementById('prev-card').addEventListener('click', function() { if (isRandomMode) currentFlashcardIndex = Math.floor(Math.random() * termsData.length); else currentFlashcardIndex = (currentFlashcardIndex - 1 + termsData.length) % termsData.length; updateFlashcard(); });
+            document.getElementById('next-card').addEventListener('click', function() { if (isRandomMode) currentFlashcardIndex = Math.floor(Math.random() * termsData.length); else currentFlashcardIndex = (currentFlashcardIndex + 1) % termsData.length; updateFlashcard(); });
+            document.getElementById('mark-mastered').addEventListener('click', function() { toggleMastered(termsData[currentFlashcardIndex].id); updateFlashcard(); });
+            document.getElementById('favorite-card').addEventListener('click', function() { toggleFavorite(termsData[currentFlashcardIndex].id); updateFlashcard(); });
+            document.getElementById('read-aloud').addEventListener('click', function() {
+                const term = termsData[currentFlashcardIndex];
+                const text = document.getElementById('flashcard-container').classList.contains('flipped') ? term.english : term.chinese;
+                const lang = document.getElementById('flashcard-container').classList.contains('flipped') ? 'en-US' : 'zh-CN';
+                if ('speechSynthesis' in window) { const utterance = new SpeechSynthesisUtterance(text); utterance.lang = lang; window.speechSynthesis.speak(utterance); } else showToast('您的浏览器不支持语音合成功能');
+            });
+            document.getElementById('sequential-mode').addEventListener('click', function() { isRandomMode = false; this.className = 'px-4 py-2 rounded-lg bg-china-red text-white font-medium'; document.getElementById('random-mode').className = 'px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium'; });
+            document.getElementById('random-mode').addEventListener('click', function() { isRandomMode = true; this.className = 'px-4 py-2 rounded-lg bg-china-red text-white font-medium'; document.getElementById('sequential-mode').className = 'px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium'; });
+        }
+
+        // 更新闪卡显示
+        function updateFlashcard() {
+            const term = termsData[currentFlashcardIndex];
+            document.getElementById('flashcard-chinese').textContent = term.chinese;
+            document.getElementById('flashcard-english').textContent = term.english;
+            document.getElementById('flashcard-progress').textContent = `${currentFlashcardIndex + 1}/${termsData.length}`;
+            document.getElementById('flashcard-explanation').innerHTML = `<strong>解析：</strong>${term.explanation}`;
+            document.getElementById('flashcard-background').innerHTML = `<strong>背景：</strong>${term.background}`;
+            const masteredBtn = document.getElementById('mark-mastered');
+            if (term.mastered) { masteredBtn.className = 'px-4 py-2 rounded-lg bg-green-500 text-white font-medium'; masteredBtn.innerHTML = '<i class="fas fa-check mr-2"></i>已掌握'; } else { masteredBtn.className = 'px-4 py-2 rounded-lg bg-green-100 text-green-700 font-medium'; masteredBtn.innerHTML = '<i class="fas fa-check mr-2"></i>标记为已掌握'; }
+            const favoriteBtn = document.getElementById('favorite-card');
+            if (term.favorite) { favoriteBtn.className = 'px-4 py-2 rounded-lg bg-yellow-500 text-white font-medium'; favoriteBtn.innerHTML = '<i class="fas fa-star mr-2"></i>已收藏'; } else { favoriteBtn.className = 'px-4 py-2 rounded-lg bg-yellow-100 text-yellow-700 font-medium'; favoriteBtn.innerHTML = '<i class="fas fa-star mr-2"></i>收藏'; }
+            document.getElementById('flashcard-container').classList.remove('flipped');
+            if (!term.learned) { term.learned = true; addLearningRecord(term); saveToLocalStorage(); updateStatistics(); }
+        }
+
+        // 初始化练习
+        function initQuiz() {
+            document.querySelectorAll('.quiz-type-btn').forEach(btn => { btn.addEventListener('click', function() { currentQuizType = this.getAttribute('data-type'); startQuiz(); }); });
+            document.getElementById('submit-answer').addEventListener('click', function() { submitAnswer(); });
+            document.getElementById('quit-quiz').addEventListener('click', function() { showSection('quiz'); document.getElementById('quiz-type-selection').classList.remove('hidden'); document.getElementById('quiz-content').classList.add('hidden'); document.getElementById('quiz-result').classList.add('hidden'); });
+            document.getElementById('retry-quiz').addEventListener('click', function() { startQuiz(); });
+            document.getElementById('review-mistakes').addEventListener('click', function() { showSection('mistakes'); });
+        }
+
+        // 开始练习
+        function startQuiz() {
+            currentQuizQuestions = generateQuizQuestions(currentQuizType, 10);
+            currentQuizIndex = 0;
+            correctAnswers = 0;
+            document.getElementById('quiz-type-selection').classList.add('hidden');
+            document.getElementById('quiz-content').classList.remove('hidden');
+            document.getElementById('quiz-result').classList.add('hidden');
+            let title = '';
+            switch (currentQuizType) { case 'chinese-to-english': title = '汉译英填空'; break; case 'english-to-chinese': title = '英译汉选择'; break; case 'matching': title = '术语匹配'; break; case 'spelling': title = '拼写练习'; break; }
+            document.getElementById('quiz-title').textContent = title;
+            showQuestion();
+        }
+
+        // 生成练习题目
+        function generateQuizQuestions(type, count) {
+            const questions = [];
+            const shuffledTerms = [...termsData].sort(() => Math.random() - 0.5);
+            for (let i = 0; i < Math.min(count, shuffledTerms.length); i++) {
+                const term = shuffledTerms[i];
+                let question = { term: term, type: type, userAnswer: null, isCorrect: null };
+                switch (type) {
+                    case 'chinese-to-english': question.text = `请将"${term.chinese}"翻译成英文`; question.correctAnswer = term.english; break;
+                    case 'english-to-chinese': question.text = `请选择"${term.english}"的正确中文翻译`; question.correctAnswer = term.chinese; const otherTerms = termsData.filter(t => t.id !== term.id); const shuffledOtherTerms = otherTerms.sort(() => Math.random() - 0.5).slice(0, 3); question.options = [term.chinese, ...shuffledOtherTerms.map(t => t.chinese)].sort(() => Math.random() - 0.5); break;
+                    case 'matching': break;
+                    case 'spelling': question.text = `请拼写"${term.chinese}"的英文翻译`; question.correctAnswer = term.english; break;
+                }
+                questions.push(question);
+            }
+            return questions;
+        }
+
+        // 显示题目
+        function showQuestion() {
+            const question = currentQuizQuestions[currentQuizIndex];
+            document.getElementById('quiz-progress').textContent = `${currentQuizIndex + 1}/${currentQuizQuestions.length}`;
+            document.getElementById('quiz-progress-bar').style.width = `${((currentQuizIndex + 1) / currentQuizQuestions.length) * 100}%`;
+            const questionContainer = document.getElementById('quiz-question-container');
+            const answerContainer = document.getElementById('quiz-answer-container');
+            questionContainer.innerHTML = `<h4 class="text-lg font-bold text-deep-blue mb-2">${question.text}</h4>`;
+            answerContainer.innerHTML = '';
+            switch (question.type) {
+                case 'chinese-to-english': answerContainer.innerHTML = `<div class="mb-4"><input type="text" id="user-answer" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-china-red focus:border-transparent" placeholder="请输入英文翻译"></div>`; break;
+                case 'english-to-chinese': let optionsHtml = '<div class="space-y-3">'; question.options.forEach((option, index) => { optionsHtml += `<div class="quiz-option border border-gray-200 rounded-lg p-4 cursor-pointer" data-option="${option}"><div class="flex items-center"><div class="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center mr-3">${String.fromCharCode(65 + index)}</div><div>${option}</div></div></div>`; }); optionsHtml += '</div>'; answerContainer.innerHTML = optionsHtml; document.querySelectorAll('.quiz-option').forEach(option => { option.addEventListener('click', function() { document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected')); this.classList.add('selected'); question.userAnswer = this.getAttribute('data-option'); }); }); break;
+                case 'matching': const matchingTerms = termsData.sort(() => Math.random() - 0.5).slice(0, 5); let chineseTerms = matchingTerms.map(t => t.chinese).sort(() => Math.random() - 0.5); let englishTerms = matchingTerms.map(t => t.english).sort(() => Math.random() - 0.5); let matchingHtml = `<div class="grid grid-cols-2 gap-4"><div class="space-y-3">${chineseTerms.map((term, index) => `<div class="matching-chinese border border-gray-200 rounded-lg p-3 cursor-pointer" data-term="${term}" data-index="${index}">${term}</div>`).join('')}</div><div class="space-y-3">${englishTerms.map((term, index) => `<div class="matching-english border border-gray-200 rounded-lg p-3 cursor-pointer" data-term="${term}" data-index="${index}">${term}</div>`).join('')}</div></div>`; answerContainer.innerHTML = matchingHtml; let selectedChinese = null; let selectedEnglish = null; document.querySelectorAll('.matching-chinese').forEach(item => { item.addEventListener('click', function() { if (selectedChinese) selectedChinese.classList.remove('selected'); this.classList.add('selected'); selectedChinese = this; if (selectedEnglish) checkMatch(); }); }); document.querySelectorAll('.matching-english').forEach(item => { item.addEventListener('click', function() { if (selectedEnglish) selectedEnglish.classList.remove('selected'); this.classList.add('selected'); selectedEnglish = this; if (selectedChinese) checkMatch(); }); }); function checkMatch() { const chineseTerm = selectedChinese.getAttribute('data-term'); const englishTerm = selectedEnglish.getAttribute('data-term'); const matchedTerm = termsData.find(t => t.chinese === chineseTerm); if (matchedTerm && matchedTerm.english === englishTerm) { selectedChinese.classList.add('correct'); selectedEnglish.classList.add('correct'); selectedChinese.classList.remove('selected'); selectedEnglish.classList.remove('selected'); selectedChinese.style.pointerEvents = 'none'; selectedEnglish.style.pointerEvents = 'none'; } else { selectedChinese.classList.add('incorrect'); selectedEnglish.classList.add('incorrect'); setTimeout(() => { selectedChinese.classList.remove('incorrect', 'selected'); selectedEnglish.classList.remove('incorrect', 'selected'); }, 1000); } selectedChinese = null; selectedEnglish = null; } break;
+                case 'spelling': answerContainer.innerHTML = `<div class="mb-4"><input type="text" id="user-answer" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-china-red focus:border-transparent" placeholder="请输入英文翻译"></div>`; break;
+            }
+        }
+
+        // 提交答案
+        function submitAnswer() {
+            const question = currentQuizQuestions[currentQuizIndex];
+            if (question.type === 'chinese-to-english' || question.type === 'spelling') question.userAnswer = document.getElementById('user-answer').value.trim();
+            if (question.type === 'chinese-to-english' || question.type === 'spelling') { const correctAnswer = question.correctAnswer.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ''); const userAnswer = question.userAnswer.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ''); question.isCorrect = correctAnswer === userAnswer; } else if (question.type === 'english-to-chinese') question.isCorrect = question.userAnswer === question.correctAnswer; else if (question.type === 'matching') question.isCorrect = true;
+            if (!question.isCorrect) addMistake(question);
+            showAnswerFeedback(question);
+        }
+
+        // 显示答案反馈
+        function showAnswerFeedback(question) {
+            const answerContainer = document.getElementById('quiz-answer-container');
+            if (question.isCorrect) { correctAnswers++; answerContainer.innerHTML += `<div class="mt-4 p-4 bg-green-100 text-green-700 rounded-lg"><div class="flex items-center"><i class="fas fa-check-circle mr-2"></i><span>回答正确！</span></div></div>`; } else { answerContainer.innerHTML += `<div class="mt-4 p-4 bg-red-100 text-red-700 rounded-lg"><div class="flex items-center mb-2"><i class="fas fa-times-circle mr-2"></i><span>回答错误</span></div><div class="mt-2"><p><strong>正确答案：</strong>${question.correctAnswer}</p><p><strong>您的答案：</strong>${question.userAnswer || '未作答'}</p></div></div>`; }
+            const submitBtn = document.getElementById('submit-answer');
+            submitBtn.textContent = '下一题';
+            submitBtn.innerHTML = '下一题<i class="fas fa-arrow-right ml-2"></i>';
+            submitBtn.removeEventListener('click', submitAnswer);
+            submitBtn.addEventListener('click', nextQuestion);
+        }
+
+        // 下一题
+        function nextQuestion() {
+            currentQuizIndex++;
+            if (currentQuizIndex < currentQuizQuestions.length) { showQuestion(); const submitBtn = document.getElementById('submit-answer'); submitBtn.textContent = '提交答案'; submitBtn.innerHTML = '提交答案<i class="fas fa-check ml-2"></i>'; submitBtn.removeEventListener('click', nextQuestion); submitBtn.addEventListener('click', submitAnswer); } else showQuizResult();
+        }
+
+        // 显示练习结果
+        function showQuizResult() {
+            document.getElementById('quiz-content').classList.add('hidden');
+            document.getElementById('quiz-result').classList.remove('hidden');
+            const score = Math.round((correctAnswers / currentQuizQuestions.length) * 100);
+            document.getElementById('result-score').textContent = `${score}%`;
+            document.getElementById('result-correct').textContent = `${correctAnswers}/${currentQuizQuestions.length}`;
+            updateStatistics();
+        }
+
+        // 添加错题
+        function addMistake(question) {
+            const existingMistake = mistakesData.find(m => m.term.id === question.term.id && m.type === question.type);
+            if (!existingMistake) { mistakesData.push({ term: question.term, type: question.type, userAnswer: question.userAnswer, correctAnswer: question.correctAnswer, timestamp: new Date().toISOString() }); saveToLocalStorage(); updateMistakesList(); }
+        }
+
+        // 初始化错题本
+        function initMistakes() { updateMistakesList(); document.getElementById('clear-mistakes').addEventListener('click', function() { if (confirm('确定要清空错题本吗？')) { mistakesData = []; saveToLocalStorage(); updateMistakesList(); showToast('错题本已清空'); } }); }
+
+        // 更新错题列表
+        function updateMistakesList() {
+            const mistakesEmpty = document.getElementById('mistakes-empty');
+            const mistakesList = document.getElementById('mistakes-list');
+            const mistakesItems = document.getElementById('mistakes-items');
+            const mistakesCount = document.getElementById('mistakes-count');
+            if (mistakesData.length === 0) { mistakesEmpty.classList.remove('hidden'); mistakesList.classList.add('hidden'); } else {
+                mistakesEmpty.classList.add('hidden'); mistakesList.classList.remove('hidden'); mistakesCount.textContent = mistakesData.length;
+                mistakesItems.innerHTML = '';
+                mistakesData.forEach((mistake, index) => {
+                    const mistakeItem = document.createElement('div');
+                    mistakeItem.className = 'bg-white rounded-xl p-6 card-shadow';
+                    let typeText = '';
+                    switch (mistake.type) { case 'chinese-to-english': typeText = '汉译英填空'; break; case 'english-to-chinese': typeText = '英译汉选择'; break; case 'matching': typeText = '术语匹配'; break; case 'spelling': typeText = '拼写练习'; break; }
+                    mistakeItem.innerHTML = `<div class="flex justify-between items-start mb-4"><span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">${typeText}</span><button class="remove-mistake text-gray-400 hover:text-red-500" data-index="${index}"><i class="fas fa-times"></i></button></div><h3 class="text-xl font-bold text-deep-blue mb-2">${mistake.term.chinese}</h3><p class="text-china-red font-medium mb-4">${mistake.term.english}</p><div class="bg-red-50 p-4 rounded-lg mb-4"><p class="text-gray-600 mb-2"><strong>您的答案：</strong>${mistake.userAnswer || '未作答'}</p><p class="text-gray-600"><strong>正确答案：</strong>${mistake.correctAnswer}</p></div><button class="practice-mistake btn-primary px-4 py-2 rounded-lg text-white font-medium text-sm" data-index="${index}"><i class="fas fa-redo mr-2"></i>重新练习</button>`;
+                    mistakesItems.appendChild(mistakeItem);
+                    mistakeItem.querySelector('.remove-mistake').addEventListener('click', function() { const index = parseInt(this.getAttribute('data-index')); mistakesData.splice(index, 1); saveToLocalStorage(); updateMistakesList(); showToast('错题已删除'); });
+                    mistakeItem.querySelector('.practice-mistake').addEventListener('click', function() { const index = parseInt(this.getAttribute('data-index')); const mistake = mistakesData[index]; currentQuizType = mistake.type; currentQuizQuestions = [{ term: mistake.term, type: mistake.type, text: mistake.type === 'chinese-to-english' || mistake.type === 'spelling' ? `请将"${mistake.term.chinese}"翻译成英文` : `请选择"${mistake.term.english}"的正确中文翻译`, correctAnswer: mistake.correctAnswer, userAnswer: null, isCorrect: null }]; if (mistake.type === 'english-to-chinese') { const otherTerms = termsData.filter(t => t.id !== mistake.term.id); const shuffledOtherTerms = otherTerms.sort(() => Math.random() - 0.5).slice(0, 3); currentQuizQuestions[0].options = [mistake.term.chinese, ...shuffledOtherTerms.map(t => t.chinese)].sort(() => Math.random() - 0.5); } currentQuizIndex = 0; correctAnswers = 0; showSection('quiz'); document.getElementById('quiz-type-selection').classList.add('hidden'); document.getElementById('quiz-content').classList.remove('hidden'); document.getElementById('quiz-result').classList.add('hidden'); let title = ''; switch (currentQuizType) { case 'chinese-to-english': title = '汉译英填空'; break; case 'english-to-chinese': title = '英译汉选择'; break; case 'matching': title = '术语匹配'; break; case 'spelling': title = '拼写练习'; break; } document.getElementById('quiz-title').textContent = title; showQuestion(); mistakesData.splice(index, 1); saveToLocalStorage(); updateMistakesList(); });
+                });
+            }
+        }
+
+        // 初始化学习进度
+        function initProgress() { updateProgressDisplay(); }
+
+        // 更新进度显示
+        function updateProgressDisplay() {
+            const learnedCount = termsData.filter(t => t.learned).length;
+            const masteredCount = termsData.filter(t => t.mastered).length;
+            const totalCount = termsData.length;
+            const progressPercentage = Math.round((learnedCount / totalCount) * 100);
+            document.getElementById('overall-progress-bar').style.width = `${progressPercentage}%`;
+            document.getElementById('overall-progress-text').textContent = `${progressPercentage}%`;
+            document.getElementById('progress-learned').textContent = learnedCount;
+            document.getElementById('progress-mastered').textContent = masteredCount;
+            document.getElementById('progress-remaining').textContent = totalCount - learnedCount;
+            const categories = [...new Set(termsData.map(t => t.category))];
+            const categoryProgress = document.getElementById('category-progress');
+            categoryProgress.innerHTML = '';
+            categories.forEach(category => { const categoryTerms = termsData.filter(t => t.category === category); const categoryLearned = categoryTerms.filter(t => t.learned).length; const categoryPercentage = Math.round((categoryLearned / categoryTerms.length) * 100); const categoryItem = document.createElement('div'); categoryItem.innerHTML = `<div class="flex justify-between items-center mb-1"><span class="text-gray-700">${category}</span><span class="text-gray-500">${categoryLearned}/${categoryTerms.length}</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div class="progress-bar bg-deep-blue h-2 rounded-full" style="width: ${categoryPercentage}%"></div></div>`; categoryProgress.appendChild(categoryItem); });
+        }
+
+        // 添加学习记录
+        function addLearningRecord(term) { learningRecords.push({ term: { id: term.id, chinese: term.chinese, english: term.english, category: term.category }, timestamp: new Date().toISOString() }); saveToLocalStorage(); }
+
+        // 切换学习状态
+        function toggleLearned(termId) { const term = termsData.find(t => t.id === termId); if (term) { term.learned = !term.learned; if (term.learned) addLearningRecord(term); saveToLocalStorage(); updateStatistics(); updateProgressDisplay(); renderTermsList(termsData); showToast(term.learned ? '已标记为已学习' : '已取消学习标记'); } }
+
+        // 切换掌握状态
+        function toggleMastered(termId) { const term = termsData.find(t => t.id === termId); if (term) { term.mastered = !term.mastered; if (term.mastered) { term.learned = true; addLearningRecord(term); } saveToLocalStorage(); updateStatistics(); updateProgressDisplay(); renderTermsList(termsData); showToast(term.mastered ? '已标记为已掌握' : '已取消掌握标记'); } }
+
+        // 切换收藏状态
+        function toggleFavorite(termId) { const term = termsData.find(t => t.id === termId); if (term) { term.favorite = !term.favorite; saveToLocalStorage(); renderTermsList(termsData); showToast(term.favorite ? '已添加到收藏' : '已从收藏中移除'); } }
+
+        // 更新统计数据
+        function updateStatistics() { const learnedCount = termsData.filter(t => t.learned).length; const masteredCount = termsData.filter(t => t.mastered).length; const totalCount = termsData.length; document.getElementById('total-terms').textContent = totalCount; document.getElementById('learned-terms').textContent = learnedCount; document.getElementById('mastered-terms').textContent = masteredCount; if (currentQuizQuestions && currentQuizQuestions.length > 0) { const score = Math.round((correctAnswers / currentQuizQuestions.length) * 100); document.getElementById('quiz-score').textContent = `${score}%`; } }
+
+        // 保存数据到本地存储
+        function saveToLocalStorage() { localStorage.setItem('termsData', JSON.stringify(termsData)); localStorage.setItem('mistakesData', JSON.stringify(mistakesData)); localStorage.setItem('learningRecords', JSON.stringify(learningRecords)); }
+
+        // 从本地存储加载数据
+        function loadFromLocalStorage() { const savedTermsData = localStorage.getItem('termsData'); const savedMistakesData = localStorage.getItem('mistakesData'); const savedLearningRecords = localStorage.getItem('learningRecords'); if (savedTermsData) { const parsedTermsData = JSON.parse(savedTermsData); parsedTermsData.forEach(savedTerm => { const term = termsData.find(t => t.id === savedTerm.id); if (term) { term.learned = savedTerm.learned; term.mastered = savedTerm.mastered; term.favorite = savedTerm.favorite; } }); } if (savedMistakesData) mistakesData = JSON.parse(savedMistakesData); if (savedLearningRecords) learningRecords = JSON.parse(savedLearningRecords); }
+
+        // 显示提示框
+        function showToast(message) { const toast = document.getElementById('toast'); toast.textContent = message; toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); }
+    </script>
+</body>
+</html>
